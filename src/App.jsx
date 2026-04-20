@@ -4,18 +4,19 @@ import { useState } from 'react';
 
 const { Badge, Button, Card } = ReactBootstrap
 
-function Square({ value, onSquareClick }) {
+function Square({ value, onSquareClick, bg }) {
   return (
     <button 
       className="square"
       onClick={onSquareClick}
+      style={{ backgroundColor: bg }}
     >
       {value}
     </button>
   );
 }
 
-function Board({ xIsNext, squares, onPlay }) {
+function Board({ xIsNext, squares, onPlay, move }) {
   // determine winner + display text
   const winner = calculateWinner(squares);
   let status;
@@ -24,19 +25,53 @@ function Board({ xIsNext, squares, onPlay }) {
   } else {
     status = "Next player: " + (xIsNext ? "X" : "O");
   }
+
+  // determine count of each
+  const xCount = Math.ceil(move / 2);
+  const oCount = Math.floor(move / 2);
+  const [selectedGrain, setSelectedGrain] = useState(-1);  
   
   function handleClick(i) {
-    if (squares[i] || calculateWinner(squares)) {
-      return; // dont do anything if square is already filled
-    }
     const nextSquares = squares.slice(); // copies squares array
-    // flip to determine which player's turn it is
-    if (xIsNext) {
-      nextSquares[i] = "X";
+
+    if ((xIsNext && xCount < 3) || (!xIsNext && oCount < 3)) {
+      if (squares[i] || calculateWinner(squares)) {
+        return; // dont do anything if square is already filled
+      }
+      // flip to determine which player's turn it is
+      if (xIsNext) {
+        nextSquares[i] = "X";
+      } else {
+        nextSquares[i] = "O";
+      }
     } else {
-      nextSquares[i] = "O";
+      if (calculateWinner(squares)) {
+        return; // dont do anything if the game is won
+      } else if (selectedGrain === -1) {
+        let player = xIsNext ? "X" : "O";
+        if (squares[i] === player) {
+          setSelectedGrain(i);
+        }
+        return; // do NOT call onPlay
+      } else {
+        if (squares[i] === null) {
+          nextSquares[i] = nextSquares[selectedGrain];
+          nextSquares[selectedGrain] = null;
+          setSelectedGrain(-1);
+        }
+      }
     }
+
     onPlay(nextSquares);
+  }
+
+  function getBG(i) {
+    // returns gray if selected, white if not
+    if (selectedGrain === i) {
+      return "lightgray";
+    } else {
+      return "white";
+    }
   }
   
   // arrow function: concisely defines function
@@ -44,19 +79,19 @@ function Board({ xIsNext, squares, onPlay }) {
     <>
       <div className="status">{status}</div>
       <div className="board-row">
-        <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
-        <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
-        <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
+        <Square value={squares[0]} onSquareClick={() => handleClick(0)} bg={getBG(0)} />
+        <Square value={squares[1]} onSquareClick={() => handleClick(1)} bg={getBG(1)} />
+        <Square value={squares[2]} onSquareClick={() => handleClick(2)} bg={getBG(2)} />
       </div>
       <div className="board-row">
-        <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
-        <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
-        <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
+        <Square value={squares[3]} onSquareClick={() => handleClick(3)} bg={getBG(3)} />
+        <Square value={squares[4]} onSquareClick={() => handleClick(4)} bg={getBG(4)} />
+        <Square value={squares[5]} onSquareClick={() => handleClick(5)} bg={getBG(5)} />
       </div>
       <div className="board-row">
-        <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
-        <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
-        <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
+        <Square value={squares[6]} onSquareClick={() => handleClick(6)} bg={getBG(6)} />
+        <Square value={squares[7]} onSquareClick={() => handleClick(7)} bg={getBG(7)} />
+        <Square value={squares[8]} onSquareClick={() => handleClick(8)} bg={getBG(8)} />
       </div>
     </>
   );
@@ -102,7 +137,7 @@ export default function Game() {
   return (
     <div className="game">
       <div className="game-board">
-        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} />
+        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} move={currentMove} />
       </div>
       <div className="game-info">
         <ol>{moves}</ol>

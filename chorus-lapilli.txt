@@ -1,0 +1,36 @@
+I. Implementing the three piece limit
+First, I believed that the easiest start would be by first
+converting the game to have a three-piece limit, and then
+add the movement restrictions after.
+
+I accomplished this quite quickly by adding a "selectedGrain"
+state to the Board object that is initialized as setState(-1)
+where -1 is a sentinel that indicates no grain is selected.
+It can hold a number 0-8 representing any of the nine squares
+on the board. 
+
+To make this properly, with a distinction between the initial
+"placement stage" (moves #0-5) and the later select + move turns,
+I also added two constants to the Board object, xCount and oCount,
+which compute how many Xs and Os have been placed based on the turn
+number.
+
+I then added additional logic to the handleClick(i) function to
+utilize this, going down the original logic if the movecount is < 6,
+and executing a new line of logic that utilizes selectedGrain to
+give the player a first click for selection, then a second click for
+movement.
+
+Now, it worked quite well, but I wanted a visual indication for the
+player to know they had selected one of their grains. So, I added
+a "bg" parameter to the Square function and a getBG(i) function to
+the Board function, which would see if the i number equaled the value
+of selectedGrain and return gray if they matched (i.e. grain i is
+selected) and white otherwise.
+
+II. Adding the adjacent movement restriction
+Now, I believed the next logical step would be to add the adjacent
+movement restriction, since I thought it would be a smaller feat
+than the other movement restriction (if you hold the center, then
+you must either win in the next move or vacate the center).
+
