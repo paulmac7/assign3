@@ -16,7 +16,7 @@ function Square({ value, onSquareClick, bg }) {
   );
 }
 
-function Board({ xIsNext, squares, onPlay, move }) {
+function Board({ xIsNext, squares, onPlay, move, grain, onGrain }) {
   // determine winner + display text
   const winner = calculateWinner(squares);
   let status;
@@ -29,7 +29,6 @@ function Board({ xIsNext, squares, onPlay, move }) {
   // determine count of each
   const xCount = Math.ceil(move / 2);
   const oCount = Math.floor(move / 2);
-  const [selectedGrain, setSelectedGrain] = useState(-1);  
   
   function handleClick(i) {
     const nextSquares = squares.slice(); // copies squares array
@@ -47,17 +46,24 @@ function Board({ xIsNext, squares, onPlay, move }) {
     } else {
       if (calculateWinner(squares)) {
         return; // dont do anything if the game is won
-      } else if (selectedGrain === -1) {
+      } else if (grain === -1) {
         let player = xIsNext ? "X" : "O";
         if (squares[i] === player) {
-          setSelectedGrain(i);
+          onGrain(i);
         }
         return; // do NOT call onPlay
       } else {
-        if (squares[i] === null) {
-          nextSquares[i] = nextSquares[selectedGrain];
-          nextSquares[selectedGrain] = null;
-          setSelectedGrain(-1);
+        if (i === grain) {
+          // allow deselection
+          onGrain(-1);
+          return;
+        }
+        if (squares[i] === null && isAdjacent(grain, i)) {
+          nextSquares[i] = nextSquares[grain];
+          nextSquares[grain] = null;
+          onGrain(-1);
+        } else {
+          return;
         }
       }
     }
@@ -67,10 +73,49 @@ function Board({ xIsNext, squares, onPlay, move }) {
 
   function getBG(i) {
     // returns gray if selected, white if not
-    if (selectedGrain === i) {
+    if (grain === i) {
       return "lightgray";
+    } else if (isAdjacent(grain, i)) {
+      return "lightgreen";
     } else {
       return "white";
+    }
+  }
+
+  function isAdjacent(source, target) {
+    // if source is invalid, return false immediately
+    if (source < 0 || source > 8) return false;
+
+    const row = Math.floor(source / 3);
+    const col = source % 3;
+
+    const up = 3 * (row - 1) + col;
+    const down = 3 * (row + 1) + col;
+    const left = 3 * row + (col - 1);
+    const right = 3 * row + (col + 1);
+
+    const ul = 3 * (row - 1) + (col - 1);
+    const ur = 3 * (row - 1) + (col + 1);
+    const dl = 3 * (row + 1) + (col - 1);
+    const dr = 3 * (row + 1) + (col + 1);
+
+    const upPos = row - 1 > -1;
+    const downPos = row + 1 < 3;
+    const leftPos = col - 1 > -1;
+    const rightPos = col + 1 < 3;
+
+    if (squares[target] === null && (
+        (target === up && upPos) ||
+        (target === down && downPos) ||
+        (target === left && leftPos) ||
+        (target === right && rightPos) ||
+        (target === ul && upPos && leftPos) ||
+        (target === ur && upPos && rightPos) ||
+        (target === dl && downPos && leftPos) ||
+        (target === dr && downPos && rightPos))) {
+      return true;
+    } else {
+      return false;
     }
   }
   
@@ -102,6 +147,11 @@ export default function Game() {
   const [currentMove, setCurrentMove] = useState(0);  
   const xIsNext = currentMove % 2 === 0;
   const currentSquares = history[currentMove];
+  const [selectedGrain, setSelectedGrain] = useState(-1);
+
+  function handleGrain(selection) {
+    setSelectedGrain(selection);
+  }
 
   function handlePlay(nextSquares) {
     // ... copies all of history's previous states and appends nextSquares to it
@@ -114,6 +164,7 @@ export default function Game() {
 
   function jumpTo(nextMove) {
     setCurrentMove(nextMove);
+    setSelectedGrain(-1);
   }
 
   // map function transforms an array into another one by
@@ -137,7 +188,12 @@ export default function Game() {
   return (
     <div className="game">
       <div className="game-board">
-        <Board xIsNext={xIsNext} squares={currentSquares} onPlay={handlePlay} move={currentMove} />
+        <Board xIsNext={xIsNext} 
+               squares={currentSquares} 
+               onPlay={handlePlay} 
+               move={currentMove}
+               grain={selectedGrain}
+               onGrain={handleGrain} />
       </div>
       <div className="game-info">
         <ol>{moves}</ol>

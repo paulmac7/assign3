@@ -34,3 +34,21 @@ movement restriction, since I thought it would be a smaller feat
 than the other movement restriction (if you hold the center, then
 you must either win in the next move or vacate the center).
 
+I pretty quickly implemented this by making an isAdjacent function
+that used simple calculations to figure out if a given "target square"
+was adjacent to a given "source square". I also added extra functionality
+to the getBG function that leveraged this isAdjacent function alongside
+checking the occupancy of adjacent squares to highlight squares you
+could move your grain to with a light green.
+
+However, I pretty quickly realized you could freeze the game if you
+selected a grain to move where all neighbors were occupied. You could
+fix this by using the history timeline to go back and forth, but this
+felt kludgey. So, I implemented an easy way to deselect a grain, by
+clicking on a grain that is already selected.
+
+I also noticed that a glitch appeared where if you had a grain selected
+and went back in time, the grain would still appear to be selected since
+it does not reset the value of selectedGrain. I fixed this by just
+lifting the selectedGrain state out of Board into Game, which allowed
+me to set selectedGrain to -1 when I used the jumpTo(nextMove) function.
