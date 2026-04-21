@@ -53,7 +53,7 @@ function Board({ xIsNext, squares, onPlay, move, grain, onGrain }) {
         }
         return; // do NOT call onPlay
       } else {
-        if (i === grain) {
+        if (i === grain || !isAdjacent(grain, i)) {
           // allow deselection
           onGrain(-1);
           return;
@@ -86,6 +86,10 @@ function Board({ xIsNext, squares, onPlay, move, grain, onGrain }) {
     // if source is invalid, return false immediately
     if (source < 0 || source > 8) return false;
 
+    // check if the player has the center square but does NOT
+    // have the center selected
+    let mustVacate = source !== 4 && (squares[source] === squares[4]);
+
     const row = Math.floor(source / 3);
     const col = source % 3;
 
@@ -104,19 +108,35 @@ function Board({ xIsNext, squares, onPlay, move, grain, onGrain }) {
     const leftPos = col - 1 > -1;
     const rightPos = col + 1 < 3;
 
+    const uWin = calculateWinner(simulateMoveGrain(squares.slice(), source, up)) !== null;
+    const dWin = calculateWinner(simulateMoveGrain(squares.slice(), source, down)) !== null;
+    const lWin = calculateWinner(simulateMoveGrain(squares.slice(), source, left)) !== null;
+    const rWin = calculateWinner(simulateMoveGrain(squares.slice(), source, right)) !== null;
+
+    const ulWin = calculateWinner(simulateMoveGrain(squares.slice(), source, ul)) !== null;
+    const urWin = calculateWinner(simulateMoveGrain(squares.slice(), source, ur)) !== null;
+    const dlWin = calculateWinner(simulateMoveGrain(squares.slice(), source, dl)) !== null;
+    const drWin = calculateWinner(simulateMoveGrain(squares.slice(), source, dr)) !== null;
+    
     if (squares[target] === null && (
-        (target === up && upPos) ||
-        (target === down && downPos) ||
-        (target === left && leftPos) ||
-        (target === right && rightPos) ||
-        (target === ul && upPos && leftPos) ||
-        (target === ur && upPos && rightPos) ||
-        (target === dl && downPos && leftPos) ||
-        (target === dr && downPos && rightPos))) {
+        ((target === up && upPos) && (uWin || !mustVacate)) ||
+        ((target === down && downPos) && (dWin || !mustVacate)) ||
+        ((target === left && leftPos) && (lWin || !mustVacate)) ||
+        ((target === right && rightPos) && (rWin || !mustVacate)) ||
+        ((target === ul && upPos && leftPos) && (ulWin || !mustVacate)) ||
+        ((target === ur && upPos && rightPos) && (urWin || !mustVacate)) ||
+        ((target === dl && downPos && leftPos) && (dlWin || !mustVacate)) ||
+        ((target === dr && downPos && rightPos) && (drWin || !mustVacate)))) {
       return true;
     } else {
       return false;
     }
+  }
+
+  function simulateMoveGrain(squareCtr, source, destination) {
+    squareCtr[destination] = squareCtr[source];
+    squareCtr[source] = null;
+    return squareCtr;
   }
   
   // arrow function: concisely defines function

@@ -52,3 +52,39 @@ and went back in time, the grain would still appear to be selected since
 it does not reset the value of selectedGrain. I fixed this by just
 lifting the selectedGrain state out of Board into Game, which allowed
 me to set selectedGrain to -1 when I used the jumpTo(nextMove) function.
+
+III. Adding the center grain "win now or retreat" restriction
+
+Now having coded the code for the adjacent restriction, I believe
+it may be quite possible to achieve this by simply modifying the
+isAdjacent function I made in part II.
+
+I indeed did this by adding additional logic to my isAdjacent 
+function. I created a mustVacate boolean inside my function that
+checked if the current player owns the center, and if so, if their
+current selection is the center. I also created variables for if
+each possible move in the four straight directions and the four
+diagonal directions would win the game. So, I then changed the
+conditions to check if a move was possible by changing it to say
+not only if the target square was blank and inside the grid, but
+also to see if you will win with that move if mustVacate is true.
+
+This ended up working perfectly, and now if you hold the center,
+if you select a non-center grain to move, it will only allow you
+to move to a square that will make you win, even if there are other
+moves to empty squares that are theoretically possible, but
+won't result in a victory.
+
+IV. A slight change for the autograder
+
+In my original implementation to this point, after selecting a grain,
+the game would only allow your clicks to have an impact if you selected
+either a valid move or clicked on the selected grain to deselect it.
+
+Based on the description given in the "Autograder Test Cases" section,
+however, it appears that if you make any second click other than moving
+it to a valid position, it should result in the deselection of the
+current grain.
+
+To solve this, I simply changed the deselection condition from i === grain
+to i === grain || !isAdjacent(grain, i).
