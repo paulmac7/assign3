@@ -1,4 +1,13 @@
-I. Setup
+0. Setup
+
+I set up my project by first forking the repository of the
+official CS 35L assignment 3. I then downloaded it to my
+computer using the git clone command provided in the
+assignment instructions. I then found the downloaded folder
+and opened the folder in VS Code. In the VS Code terminal, I
+then just used the command ./helper init to finish the setup.
+
+I. Beginning the tutorial
 
 First, I tried just adding the Square() function from the
 first part of the tutorial. This led to an error as only

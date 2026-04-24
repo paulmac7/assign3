@@ -155,6 +155,146 @@ class TestChorusLapilli(unittest.TestCase):
         tiles[0].click()
         self.assertTileIs(tiles[0], self.SYMBOL_X)
 
+    def test_victory_prevents_moves(self):
+        '''Check if the player is still able to make moves after one player
+        achieves victory.'''
+        tiles = self.driver.find_elements(By.XPATH, self.BOARD_TILE_XPATH)
+        tiles[0].click() # X _ _
+        tiles[3].click()
+        tiles[1].click() # X X _
+        tiles[4].click()
+        tiles[2].click() # X X X (victory)
+
+        self.assertTileIs(tiles[5], self.SYMBOL_BLANK)
+        tiles[5].click() # would finish O-row below X
+                         # should fail since X won
+        self.assertTileIs(tiles[5], self.SYMBOL_BLANK)
+
+    def test_only_adjacent_moves(self):
+        '''Check that you can only move to valid locations, and that invalid
+        attempts will revert you to the initial selection state.'''
+        tiles = self.driver.find_elements(By.XPATH, self.BOARD_TILE_XPATH)
+        tiles[0].click() # X _ _
+        tiles[3].click()
+        tiles[1].click() # X X _
+        tiles[4].click()
+        tiles[5].click()
+        tiles[7].click()
+
+        '''
+        X X _
+        O O X
+        _ O _
+        '''
+
+        # test attempt to move to non-adjacent spots
+        tiles[5].click()
+        self.assertTileIs(tiles[6], self.SYMBOL_BLANK)
+        tiles[6].click()
+        self.assertTileIs(tiles[6], self.SYMBOL_BLANK)
+
+        # test attempt to move to occupied adj spot (O-occupied)
+        tiles[5].click()
+        self.assertTileIs(tiles[4], self.SYMBOL_O)
+        tiles[4].click()
+        self.assertTileIs(tiles[4], self.SYMBOL_O)
+
+        # test attempt to move to occupied adj spot (X-occupied)
+        tiles[5].click()
+        self.assertTileIs(tiles[1], self.SYMBOL_X)
+        tiles[1].click()
+        self.assertTileIs(tiles[1], self.SYMBOL_X)
+
+        # test move to a valid location
+        tiles[5].click()
+        self.assertTileIs(tiles[8], self.SYMBOL_BLANK)
+        tiles[8].click()
+        self.assertTileIs(tiles[8], self.SYMBOL_X)
+        self.assertTileIs(tiles[5], self.SYMBOL_BLANK)
+
+    def test_center_win(self):
+        '''Checks that if you hold the center, you can only either win
+        or vacate the center. This tests being unable to move a non-center
+        grain to a non-winning but adjacent position, and being able to
+        move it to a winning position.'''
+        tiles = self.driver.find_elements(By.XPATH, self.BOARD_TILE_XPATH)
+        tiles[0].click()
+        tiles[1].click()
+        tiles[4].click()
+        tiles[3].click()
+        tiles[5].click()
+        tiles[6].click()
+
+        '''
+        X O _
+        O X X
+        O _ _
+        '''
+
+        # test non-winning moves (but adjacent) of tile 5's X
+
+        # diagonal: down-left
+        tiles[5].click()
+        self.assertTileIs(tiles[7], self.SYMBOL_BLANK)
+        tiles[7].click()
+        self.assertTileIs(tiles[7], self.SYMBOL_BLANK)
+
+        # upwards
+        tiles[5].click()
+        self.assertTileIs(tiles[2], self.SYMBOL_BLANK)
+        tiles[2].click()
+        self.assertTileIs(tiles[2], self.SYMBOL_BLANK)
+
+        # test winning move
+
+        # downwards
+        tiles[5].click()
+        self.assertTileIs(tiles[8], self.SYMBOL_BLANK)
+        tiles[8].click()
+        self.assertTileIs(tiles[8], self.SYMBOL_X)
+        self.assertTileIs(tiles[5], self.SYMBOL_BLANK)
+
+    def test_center_vacate(self):
+        '''Checks that if you hold the center, you can only either win
+        or vacate the center. This tests being unable to move a non-center
+        grain to a non-winning but adjacent position, and being able to
+        vacate the center.'''
+        tiles = self.driver.find_elements(By.XPATH, self.BOARD_TILE_XPATH)
+        tiles[0].click()
+        tiles[1].click()
+        tiles[4].click()
+        tiles[3].click()
+        tiles[5].click()
+        tiles[6].click()
+
+        '''
+        X O _
+        O X X
+        O _ _
+        '''
+
+        # test non-winning moves (but adjacent) of tile 5's X
+
+        # diagonal: down-left
+        tiles[5].click()
+        self.assertTileIs(tiles[7], self.SYMBOL_BLANK)
+        tiles[7].click()
+        self.assertTileIs(tiles[7], self.SYMBOL_BLANK)
+
+        # upwards
+        tiles[5].click()
+        self.assertTileIs(tiles[2], self.SYMBOL_BLANK)
+        tiles[2].click()
+        self.assertTileIs(tiles[2], self.SYMBOL_BLANK)
+
+        # test vacating the center
+
+        tiles[4].click()
+        self.assertTileIs(tiles[7], self.SYMBOL_BLANK)
+        tiles[7].click()
+        self.assertTileIs(tiles[7], self.SYMBOL_X)
+        self.assertTileIs(tiles[4], self.SYMBOL_BLANK)
+
 
 # ================= [DO NOT MAKE ANY CHANGES BELOW THIS LINE] =================
 
